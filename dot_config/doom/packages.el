@@ -49,11 +49,13 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 
-(package! evil-motion-trainer
-  :recipe (:host github :repo "martinbaillie/evil-motion-trainer"))
-(package! nyan-mode)
+(package! evil-motion-trainer :recipe (:host github :repo "martinbaillie/evil-motion-trainer"))
 (package! good-scroll)
-(package! yatemplate)
+(package! lsp-dart :recipe (:local-repo "/home/patrickw/dev/git/lsp-dart"))
 (package! lsp-pyright)
+(package! nyan-mode)
 (package! tree-sitter)
-(package! tree-sitter-langs :recipe (:local-repo "/home/patrickw/git/tree-sitter-langs"))
+(package! tree-sitter-langs :recipe (:local-repo "/home/patrickw/dev/git/tree-sitter-langs"))
+(package! xresources-theme)
+(package! yatemplate)
+(package! zoom)

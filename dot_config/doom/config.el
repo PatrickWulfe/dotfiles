@@ -1,33 +1,17 @@
+;; (general-auto-unbind-keys :off)
+;; (remove-hook 'doom-after-init-modules-hook #'general-auto-unbind-keys)
+
 (setq user-full-name "Patrick Wulfe"
       user-mail-address "wulfep@gmail.com")
 
-(setq doom-font (font-spec :family "Fira Code" :size 16 :weight 'medium)
-      doom-variable-pitch-font (font-spec :family "Product Sans" :size 13 :weight 'medium)
-      doom-big-font (font-spec :family "Product Sans")
-      doom-serif-font (font-spec :family "Fira Code" :weight 'light)
-      )
-
-(if (display-graphic-p)
-    (progn
-      (setq initial-frame-alist
-            '(
-              (width . 240) ; chars
-              (height . 74) ; lines
-              (left . 1400)
-              (top . 40)))
-      (setq default-frame-alist
-            '(
-              (width . 240) ; chars
-              (height . 74) ; lines
-              (left . 1400)
-              (top . 40))))
-  (progn
-    (setq initial-frame-alist '( (tool-bar-lines . 0)))
-    (setq default-frame-alist '( (tool-bar-lines . 0)))))
-(menu-bar-mode -1)
-(tool-bar-mode -1)
+(setq doom-font (font-spec :family "FiraCode Nerd Font" :size 16)
+      doom-unicode-font (font-spec :family "FiraCode Nerd Font")
+      doom-variable-pitch-font (font-spec :family "Open Sans" :size 13 :weight 'medium)
+      doom-big-font (font-spec :family "Open Sans")
+      doom-serif-font (font-spec :family "FiraCode Nerd Font"))
 
 (setq doom-theme 'my-doom-horizon)
+(setq doom-modeline-major-mode-icon t)
 
 (defface font-lock-operator-face
   '((t (:foreground "#21BFC2"))) "Basic face for operator." :group 'basic-faces)
@@ -40,20 +24,37 @@
   (font-lock-add-keywords mode-iter
   '(("\\([@~^&\|!<>:=,.\\+*/%-]\\)" 0 'font-lock-operator-face keep))))
 
+(set-frame-parameter (selected-frame) 'alpha-background 97)
+(add-to-list 'default-frame-alist '(alpha-background . 97))
+
 (use-package! nyan-mode
   :after doom-modeline
   :init
   (setq nyan-bar-length 40)
   (setq nyan-animate-cat t)
   (setq nyan-wavy-trail t)
-   (nyan-mode)
-  )
+   (nyan-mode))
 ;; Start animation on page load
 (add-hook 'text-mode-hook 'nyan-start-animation)
 
 (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
 
 (setq display-line-numbers-type 'relative)
+
+(use-package! highlight-indent-guides
+  :config
+  (setq highlight-indent-guides-responsive 'stack)
+  ;; (setq highlight-indent-guides-auto-odd-face-perc 30)
+  ;; (setq highlight-indent-guides-auto-even-face-perc 20)
+  ;; (setq highlight-indent-guides-auto-character-face-perc 30)
+  )
+
+(use-package! zoom
+  :config
+  (setq zoom-mode t)
+  (setq zoom-ignore-predicates (lambda ()
+    (equal which-key-buffer-name
+         (buffer-file-name (current-buffer))))))
 
 (good-scroll-mode 1)
 (scroll-bar-mode -1)
@@ -79,6 +80,7 @@
 (map! :after dart-mode
       :map dart-mode-map
       :localleader
+      "l" #'lsp
       "O" #'lsp-dart-show-flutter-outline
       "Q" #'flutter-quit
       "r" #'flutter-hot-reload
@@ -127,9 +129,6 @@
       #'projectile-toggle-between-implementation-and-test)
 
 (map! :leader
-      :desc "Tabs" "t T" #'centaur-tabs-mode)
-
-(map! :leader
  (:prefix ("T" . "tree-sitter")
   :desc "TS node at point" "n" #'tree-sitter-node-at-point))
 
@@ -140,9 +139,18 @@
        :desc "Tryout" "t" #'yas-tryout-snippet
       ))
 
-(setq +lsp-company-backends '(:separate company-yasnippet company-capf))
+(use-package! company
+  :config
+  (require 'doom-snippets)
+  :after '
+    (setq +lsp-company-backends '(:separate company-yasnippet company-capf))
+  )
 
-(setq projectile-project-search-path '("~/dev/src/"))
+(use-package! lsp-mode
+  :custom
+  (lsp-headerline-breadcrumb-enable t))
+
+(setq projectile-project-search-path '("~/dev/"))
 
 (setq projectile-create-missing-test-files t)
 
@@ -156,8 +164,12 @@
 (pushnew! tree-sitter-major-mode-language-alist
           '(dart-mode . dart))
 
-(setq doom-themes-treemacs-theme "doom-colors")
-(setq treemacs-position 'right)
+(use-package! treemacs
+  :config
+  (require 'treemacs-diagnostics)
+    (setq doom-themes-treemacs-theme "doom-colors")
+    (setq treemacs-position 'right)
+  )
 ;; (setq treemacs-width 30)
 
 (use-package doom-snippets
@@ -193,10 +205,29 @@
 (add-hook 'c-mode-hook 'lsp)
 (add-hook 'c++-mode-hook 'lsp)
 
+(use-package! dart-mode
+  :config
+  ;; (set-face-foreground 'fill-column-indicator "violet")
+  (require 'whitespace)
+  (setq whitespace-line-column 80)
+  (setq whitespace-style '(face lines-tail)))
+
+(use-package! hover
+  :config
+  (setq hover-hot-reload-on-save t
+        hover-clear-buffer-on-hot-restart t
+        hover-screenshot-path "$HOME/Pictures"))
+
+(use-package! lsp-dart
+  :after dart-mode
+  :config
+  (setq lsp-dart-dap-flutter-hot-reload-on-save t))
+
 ;; enable lsp on load
+(add-hook 'dart-mode-hook 'whitespace-mode)
 (add-hook 'dart-mode-hook 'lsp)
-;; trigger hot-reload on save
-(setq lsp-dart-dap-flutter-hot-reload-on-save t)
+(add-hook 'dart-mode-hook #'display-fill-column-indicator-mode)
+
 ;; adjust garbage collection
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024))
@@ -238,12 +269,12 @@
   "Create dart bloc files (bloc, state, event)"
   (interactive "sBloc Subject: \n")
   (make-empty-file (concat "./bloc/" blocSubject "_bloc.dart"))
-  (make-empty-file (concat "./" blocSubject "_event.dart"))
-  (make-empty-file (concat "./" blocSubject "_state.dart"))
+  (make-empty-file (concat "./bloc/" blocSubject "_event.dart"))
+  (make-empty-file (concat "./bloc/" blocSubject "_state.dart"))
   )
 (defun create-dart-cubit (cubitSubject)
   "Create dart cubit files (cubit, state)"
   (interactive "sCubit Subject: \n")
   (make-empty-file (concat "./cubit/" cubitSubject "_cubit.dart"))
-  (make-empty-file (concat "./" cubitSubject "_state.dart"))
+  (make-empty-file (concat "./cubit/" cubitSubject "_state.dart"))
   )

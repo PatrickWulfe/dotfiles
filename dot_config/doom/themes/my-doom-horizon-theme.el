@@ -1,4 +1,3 @@
-
 ;;; doom-horizon-theme.el --- Inspired by VSCode Horizon -*- lexical-binding: t; no-byte-compile: t; -*-
 
 ;;; Commentary:
@@ -12,7 +11,7 @@
   "Options for the `doom-horizon' theme."
   :group 'doom-themes)
 
-(defcustom doom-horizon-brighter-modeline nil
+(defcustom doom-horizon-brighter-modeline t
   "If non-nil, more vivid colors will be used to style the mode-line."
   :group 'doom-horizon-theme
   :type 'boolean)
@@ -32,18 +31,20 @@
   :group 'doom-horizon-theme
   :type '(choice integer boolean))
 
+(set-face-foreground 'fill-column-indicator "#232530")
+
 ;;
 (def-doom-theme my-doom-horizon
   "A port of the port of the Visual Studio Code theme Horizon"
 
   ;; name       default    256       16
-  ((bg         '("#232530" nil       nil            ))
-   (bg-alt     '("#1c1e26" nil       nil            ))
+  ((bg         '("#1c1e26" nil       nil            ))
+   (bg-alt     '("#232530" nil       nil            ))
    (base0      '("#16161c" "black"   "black"        ))
    (base1      '("#1a1c23" "#111111" "brightblack"  ))
-   (base2      '("#1d1f27" "#333333" "brightblack"  ))
+   (base2      '("#1c1e26" "#333333" "brightblack"  ))
    (base3      '("#232530" "#555555" "white"        ))
-   (base4      '("#6a6a6a" "#6a6a6a" "white"        ))
+   (base4      '("#6c6f93" "#6a6a6a" "white"        ))
    (base5      '("#f9cec3" "#f9cec3" "white"        ))
    (base6      '("#f9cbbe" "#f9cbbe" "white"        ))
    (base7      '("#fadad1" "#fadad1" "white"        ))
@@ -105,8 +106,8 @@
    (modeline-fg     `(,(doom-darken (car fg) 0.2) ,@(cdr fg-alt)))
    (modeline-fg-alt `(,(doom-lighten (car bg) 0.2) ,@(cdr base3)))
 
-   (modeline-bg (if -modeline-bright base4 base1))
-   (modeline-bg-inactive base1))
+   (modeline-bg (if -modeline-bright base3 base4))
+   (modeline-bg-inactive base0))
 
 
   ;;;; Base theme face overrides
@@ -184,8 +185,8 @@
    ;;;; outline <built-in>
    ((outline-1 &override) :foreground blue :background nil)
    ;;;; org <built-in>
-   ((org-block &override) :background base1)
-   ((org-block-begin-line &override) :background base1 :foreground comments)
+   ((org-block &override) :background base3)
+   ((org-block-begin-line &override) :background base3 :foreground comments)
    (org-hide :foreground hidden)
    (org-link :inherit 'underline :foreground yellow)
    (org-agenda-done :foreground cyan)

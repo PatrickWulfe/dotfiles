@@ -28,6 +28,8 @@ alias cdd "cd $HOME/dev/"
 alias cds "cd $HOME/dev/src"
 alias cdfi "cd $IMPORT_LOC"
 
+alias pub "dart pub"
+
 # alias dfg "/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
 
 # alias uwu "sudo apt update && sudo apt upgrade"

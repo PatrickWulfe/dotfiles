@@ -3,6 +3,11 @@
 #+LANGUAGE: en
 #+PROPERTY: header-args:emacs-lisp :tangle config.el
 
+* Emacs 29 bug
+#+begin_src elisp
+;; (general-auto-unbind-keys :off)
+;; (remove-hook 'doom-after-init-modules-hook #'general-auto-unbind-keys)
+#+end_src
 * User info
 Setting personal info
 #+begin_src elisp
@@ -15,40 +20,18 @@ Setting personal info
 I really like the 'r' and 'g' in Fira Code, so it's my favorite font for coding
 Open sans is close to the sans font Google uses for Android, which I'm a big fan of
 #+begin_src elisp
-(setq doom-font (font-spec :family "Fira Code" :size 16 :weight 'medium)
-      doom-variable-pitch-font (font-spec :family "Product Sans" :size 13 :weight 'medium)
-      doom-big-font (font-spec :family "Product Sans")
-      doom-serif-font (font-spec :family "Fira Code" :weight 'light)
-      )
-#+end_src
-
-** Frame Size
-#+begin_src elisp
-(if (display-graphic-p)
-    (progn
-      (setq initial-frame-alist
-            '(
-              (width . 240) ; chars
-              (height . 74) ; lines
-              (left . 1400)
-              (top . 40)))
-      (setq default-frame-alist
-            '(
-              (width . 240) ; chars
-              (height . 74) ; lines
-              (left . 1400)
-              (top . 40))))
-  (progn
-    (setq initial-frame-alist '( (tool-bar-lines . 0)))
-    (setq default-frame-alist '( (tool-bar-lines . 0)))))
-(menu-bar-mode -1)
-(tool-bar-mode -1)
+(setq doom-font (font-spec :family "FiraCode Nerd Font" :size 16)
+      doom-unicode-font (font-spec :family "FiraCode Nerd Font")
+      doom-variable-pitch-font (font-spec :family "Open Sans" :size 13 :weight 'medium)
+      doom-big-font (font-spec :family "Open Sans")
+      doom-serif-font (font-spec :family "FiraCode Nerd Font"))
 #+end_src
 
 ** Theme
 I customized the horizon theme to adjust some of the syntax colors and background
 #+begin_src elisp
 (setq doom-theme 'my-doom-horizon)
+(setq doom-modeline-major-mode-icon t)
 #+end_src
 
 Add highlighting to operators
@@ -67,6 +50,12 @@ Doesn't work with tree-sitter active, but I still prefer it when tree-sitter isn
   '(("\\([@~^&\|!<>:=,.\\+*/%-]\\)" 0 'font-lock-operator-face keep))))
 #+end_src
 
+** Transparency
+#+begin_src elisp
+(set-frame-parameter (selected-frame) 'alpha-background 97)
+(add-to-list 'default-frame-alist '(alpha-background . 97))
+#+end_src
+
 ** Nyan-Mode
 Adds the Nyan-cat progress bar on the modeline
 #+begin_src elisp
@@ -76,8 +65,7 @@ Adds the Nyan-cat progress bar on the modeline
   (setq nyan-bar-length 40)
   (setq nyan-animate-cat t)
   (setq nyan-wavy-trail t)
-   (nyan-mode)
-  )
+   (nyan-mode))
 ;; Start animation on page load
 (add-hook 'text-mode-hook 'nyan-start-animation)
 #+end_src
@@ -92,6 +80,28 @@ Rainbow delimiters are amazing, incredibly useful for lisp and other languages t
 Relative line numbers to make vim commands easier
 #+begin_src elisp
 (setq display-line-numbers-type 'relative)
+#+end_src
+
+** Indent Guides
+#+begin_src elisp
+(use-package! highlight-indent-guides
+  :config
+  (setq highlight-indent-guides-responsive 'stack)
+  ;; (setq highlight-indent-guides-auto-odd-face-perc 30)
+  ;; (setq highlight-indent-guides-auto-even-face-perc 20)
+  ;; (setq highlight-indent-guides-auto-character-face-perc 30)
+  )
+#+end_src
+
+**  Zoom
+Automatically resize windows
+#+begin_src elisp
+(use-package! zoom
+  :config
+  (setq zoom-mode t)
+  (setq zoom-ignore-predicates (lambda ()
+    (equal which-key-buffer-name
+         (buffer-file-name (current-buffer))))))
 #+end_src
 
 ** Scroll modifications
@@ -146,6 +156,7 @@ Also prefer "SPC j" over "g s" for easymotion like in Spacemacs
 (map! :after dart-mode
       :map dart-mode-map
       :localleader
+      "l" #'lsp
       "O" #'lsp-dart-show-flutter-outline
       "Q" #'flutter-quit
       "r" #'flutter-hot-reload
@@ -218,13 +229,6 @@ Add bind to go back and forth between test and implimentation files, useful for 
       #'projectile-toggle-between-implementation-and-test)
 #+end_src
 
-** Tabs
-Just wanted to be able to turn tabs on/off
-#+begin_src elisp
-(map! :leader
-      :desc "Tabs" "t T" #'centaur-tabs-mode)
-#+end_src
-
 ** Tree-Sitter
 #+begin_src elisp
 (map! :leader
@@ -247,13 +251,25 @@ Adding some utility binds for snippets
 ** Company
 Move snippets above lsp
 #+begin_src elisp
-(setq +lsp-company-backends '(:separate company-yasnippet company-capf))
+(use-package! company
+  :config
+  (require 'doom-snippets)
+  :after '
+    (setq +lsp-company-backends '(:separate company-yasnippet company-capf))
+  )
+#+end_src
+
+** LSP
+#+begin_src elisp
+(use-package! lsp-mode
+  :custom
+  (lsp-headerline-breadcrumb-enable t))
 #+end_src
 
 ** Projectile
 Add default project directory for projectile
 #+begin_src elisp
-(setq projectile-project-search-path '("~/dev/src/"))
+(setq projectile-project-search-path '("~/dev/"))
 #+end_src
 
 Prompt to create new test file when not found
@@ -277,8 +293,12 @@ Prompt to create new test file when not found
 ** Treemacs
 Default doom theme is minimal and doesn't use file type icons, I much prefer this one
 #+begin_src elisp
-(setq doom-themes-treemacs-theme "doom-colors")
-(setq treemacs-position 'right)
+(use-package! treemacs
+  :config
+  (require 'treemacs-diagnostics)
+    (setq doom-themes-treemacs-theme "doom-colors")
+    (setq treemacs-position 'right)
+  )
 ;; (setq treemacs-width 30)
 #+end_src
 
@@ -344,10 +364,29 @@ Add support for multiple fonts
 *** Flutter setup with major mode keybinds
 Setting up Doom to be a Flutter IDE
 #+begin_src elisp
+(use-package! dart-mode
+  :config
+  ;; (set-face-foreground 'fill-column-indicator "violet")
+  (require 'whitespace)
+  (setq whitespace-line-column 80)
+  (setq whitespace-style '(face lines-tail)))
+
+(use-package! hover
+  :config
+  (setq hover-hot-reload-on-save t
+        hover-clear-buffer-on-hot-restart t
+        hover-screenshot-path "$HOME/Pictures"))
+
+(use-package! lsp-dart
+  :after dart-mode
+  :config
+  (setq lsp-dart-dap-flutter-hot-reload-on-save t))
+
 ;; enable lsp on load
+(add-hook 'dart-mode-hook 'whitespace-mode)
 (add-hook 'dart-mode-hook 'lsp)
-;; trigger hot-reload on save
-(setq lsp-dart-dap-flutter-hot-reload-on-save t)
+(add-hook 'dart-mode-hook #'display-fill-column-indicator-mode)
+
 ;; adjust garbage collection
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024))
@@ -416,13 +455,13 @@ Functions for creating empty files in a bloc folder that will be populated by Ya
   "Create dart bloc files (bloc, state, event)"
   (interactive "sBloc Subject: \n")
   (make-empty-file (concat "./bloc/" blocSubject "_bloc.dart"))
-  (make-empty-file (concat "./" blocSubject "_event.dart"))
-  (make-empty-file (concat "./" blocSubject "_state.dart"))
+  (make-empty-file (concat "./bloc/" blocSubject "_event.dart"))
+  (make-empty-file (concat "./bloc/" blocSubject "_state.dart"))
   )
 (defun create-dart-cubit (cubitSubject)
   "Create dart cubit files (cubit, state)"
   (interactive "sCubit Subject: \n")
   (make-empty-file (concat "./cubit/" cubitSubject "_cubit.dart"))
-  (make-empty-file (concat "./" cubitSubject "_state.dart"))
+  (make-empty-file (concat "./cubit/" cubitSubject "_state.dart"))
   )
 #+end_src
